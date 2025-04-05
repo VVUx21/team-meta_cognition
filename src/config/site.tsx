@@ -35,7 +35,7 @@ export const navigations: Navigation[] = [
   },
   {
     icon: Eye,
-    name: "My Watchklist",
+    name: "My Watchlist",
     href: "/watchlist",
   },
    {
