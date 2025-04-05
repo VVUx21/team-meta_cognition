@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import { ArrowDown, ArrowUp, BarChart3, ChevronDown, LineChart, Menu, Search } from 'lucide-react'
 import Link from "next/link"
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { useEffect, useRef, useState } from "react";
 
 // Data arrays
 const mostTradedStocks = [
@@ -38,12 +38,12 @@ const popularETFs = [
   { symbol: "VTI", name: "Vanguard Total Stock Market ETF", price: 250.89, aum: 380.7 }
 ]
 
-const topIntradayStocks = [
-  { symbol: "AAPL", name: "Apple Inc.", price: 175.34, change: 1.23, volume: "45.2M" },
-  { symbol: "TSLA", name: "Tesla Inc.", price: 180.56, change: -2.45, volume: "32.1M" },
-  { symbol: "AMZN", name: "Amazon.com Inc.", price: 185.23, change: 0.78, volume: "28.7M" },
-  { symbol: "MSFT", name: "Microsoft Corp.", price: 420.45, change: 1.56, volume: "25.3M" }
-]
+interface Stock {
+  name: string;
+  symbol: string;
+  price: number;
+  changesPercentage: number;
+}
 
 const priceHistory = [
   { time: '9:30', price: 180 },
@@ -60,12 +60,50 @@ const sectorDistribution = [
   { name: 'Health', value: 15 },
 ]
 
+const topStocks = [
+  { symbol: "AAPL", name: "Apple Inc.", price: 175.34, change: 1.23, volume: "45.2M" },
+  { symbol: "TSLA", name: "Tesla Inc.", price: 180.56, change: -2.45, volume: "32.1M" },
+  { symbol: "AMZN", name: "Amazon.com Inc.", price: 185.23, change: 0.78, volume: "28.7M" },
+  { symbol: "MSFT", name: "Microsoft Corp.", price: 420.45, change: 1.56, volume: "25.3M" }
+]
+
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444']
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("gainers")
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [topIntradayStocks, setTopIntradayStocks] = useState<Stock[]>([]);
+  const [visibleStocks, setVisibleStocks] = useState(5);
+  const stockListRef = useRef(null);
 
+  const handleScroll = () => {
+    if (stockListRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = stockListRef.current;
+      
+      if (scrollTop + clientHeight >= scrollHeight - 20 && visibleStocks < topIntradayStocks.length) {
+        setVisibleStocks(prev => Math.min(prev + 5, topIntradayStocks.length));
+      }
+    }
+  };
+  const handleAnalyze = (symbol: string) => {
+    // This function would handle the analyze action
+    console.log(`Analyzing ${symbol}`);
+    alert(`Analyzing ${symbol}`);
+  };
+  useEffect(() => {
+    const fetchTopIntradayStocks = async () => {
+      try {
+        const response = await fetch("https://financialmodelingprep.com/stable/most-actives?apikey=STz1y1UAFDtZZzuGVtAsoUJpnLwWRFAb");
+        const data = await response.json();
+        setTopIntradayStocks(data);
+      } catch (error) {
+        console.error("Error fetching top intraday stocks:", error);
+      }
+    };
+  
+    fetchTopIntradayStocks();
+  }, []);
+  
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
       <header className="sticky top-0 z-40 border-b bg-white dark:bg-gray-900">
@@ -104,42 +142,66 @@ export default function Home() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Most Traded Stocks */}
-            <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
-              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🔥 Hot Stocks</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Most traded today</p>
-                </div>
-                <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                  Today <ChevronDown className="ml-2 h-4 w-4" />
-                </button>
+            <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 w-full max-w-md">
+      <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🔥 Hot Stocks</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Most traded today</p>
+        </div>
+        <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+          Today
+        </button>
+      </div>
+      <div 
+        ref={stockListRef}
+        className="p-6 overflow-y-auto max-h-96" 
+        onScroll={handleScroll}
+      >
+        {topIntradayStocks.slice(0, visibleStocks).map((stock) => (
+          <div key={stock.symbol} className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                  {stock.symbol.substring(0, 2)}
+                </span>
               </div>
-              <div className="p-6">
-                {mostTradedStocks.map((stock) => (
-                  <div key={stock.symbol} className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
-                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                          {stock.symbol.substring(0, 2)}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
-                      <div className={`flex items-center text-sm ${stock.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {stock.change >= 0 ? <ArrowUp className="mr-1 h-3 w-3" /> : <ArrowDown className="mr-1 h-3 w-3" />}
-                        {Math.abs(stock.change).toFixed(2)}%
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div>
+                <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
               </div>
             </div>
-
+            <div className="flex flex-col items-end">
+              <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
+              <div className="flex items-center justify-between w-full">
+                <div className={`flex items-center text-sm ${stock.changesPercentage >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {stock.changesPercentage >= 0 ? (
+                    <svg className="mr-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                    </svg>
+                  ) : (
+                    <svg className="mr-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
+                  {Math.abs(stock.changesPercentage).toFixed(2)}%
+                </div>
+                <button
+                  onClick={() => handleAnalyze(stock.symbol)}
+                  className="ml-3 text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+                >
+                  Analyze
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+        {visibleStocks < topIntradayStocks.length && (
+          <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+            Scroll for more stocks
+          </div>
+        )}
+      </div>
+    </div>
             {/* Top Gainers & Losers */}
             <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
               <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
@@ -358,7 +420,7 @@ export default function Home() {
               </div>
               <div className="p-6">
                 <div className="grid gap-6 md:grid-cols-2">
-                  {topIntradayStocks.map((stock) => (
+                  {topStocks.map((stock) => (
                     <div key={stock.symbol} className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                       <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">

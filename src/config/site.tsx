@@ -34,11 +34,6 @@ export const navigations: Navigation[] = [
     href: "/realtime-trend",
   },
   {
-    icon: SquareUser,
-    name: "Demat",
-    href: "/demat",
-  },
-  {
     icon: Eye,
     name: "My Watchklist",
     href: "/watchlist",
