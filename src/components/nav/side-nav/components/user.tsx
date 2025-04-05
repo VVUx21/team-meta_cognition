@@ -7,7 +7,7 @@ export default function User() {
       <div className="flex w-full items-center justify-between rounded-md px-2 py-1 hover:bg-slate-200 dark:hover:bg-slate-800">
         <div className="flex items-center">
           <Image
-            src="/avatar.png"
+            src="/favicon.png"
             alt="User"
             className="mr-2 rounded-full"
             width={36}
