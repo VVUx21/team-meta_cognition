@@ -3,83 +3,80 @@
 import { Bookmark, Clock, Share2, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-interface NewsItem {
-  id: number
-  title: string
-  source: string
-  time: string
-  category: string
-  sentiment: 'positive' | 'neutral' | 'negative'
-  trending: boolean
+interface StockNews {
+  title: string;
+  summary: string;
 }
 
-export default function PersonalizedNewsSection() {
-  const [news, setNews] = useState<NewsItem[]>([])
+interface StockData {
+  status: string;
+  source: string;
+  tickers: string[];
+  data: {
+    [ticker: string]: StockNews;
+  };
+}
+
+export default function StockNewsSection() {
+  const [stockData, setStockData] = useState<StockData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const fetchStockData = async () => {
       try {
-        // Using your actual endpoint
-        const response = await fetch('https://metafin.onrender.com/chatbot/news/')
+        const response = await fetch('http://127.0.0.1:8000/chatbot/news')
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
 
         const data = await response.json()
-        
-        // Transform API data to match our NewsItem interface
-        const transformedNews = data.slice(0, 4).map((article: any, index: number) => ({
-          id: index + 1,
-          title: article.title || "No title available",
-          source: article.source || "Unknown source",
-          time: `${Math.floor(Math.random() * 8) + 1}h ago`, // Mock time since API might not provide this
-          category: article.category || 'Business', // Default category
-          sentiment: Math.random() > 0.7 ? 'positive' : 'neutral', // Mock sentiment
-          trending: Math.random() > 0.5 // Random trending flag
-        }))
-
-        setNews(transformedNews)
+        setStockData(data)
       } catch (err) {
-        setError('Failed to fetch news. Please try again later.')
-        console.error('Error fetching news:', err)
+        setError('Failed to fetch stock data. Please try again later.')
+        console.error('Error fetching stock data:', err)
         
-        // Fallback to properly typed sample data
-        const sampleNews: NewsItem[] = [
-          {
-            id: 1,
-            title: "Tech stocks rally as AI investments surge",
-            source: "Tech Financials",
-            time: "2h ago",
-            category: "Technology",
-            sentiment: "positive",
-            trending: true
-          },
-          {
-            id: 2,
-            title: "Fed signals potential rate cuts in Q3 2024",
-            source: "Market Watch",
-            time: "4h ago",
-            category: "Economy",
-            sentiment: "neutral",
-            trending: false
+        // Fallback to sample data in case of error
+        setStockData({
+          "status": "success",
+          "source": "default",
+          "tickers": ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA"],
+          "data": {
+            "AAPL": {
+              "title": "Apple (AAPL) Stock Trades Down, Here Is Why",
+              "summary": "Apple (AAPL) stock experienced a significant drop, closing down 7.2% at $188.40, due to escalating trade war tensions between the U.S. and China."
+            },
+            "MSFT": {
+              "title": "Bill Gates Shares Original Code That Started It All As Microsoft Celebrates 50 Years",
+              "summary": "Microsoft founder Bill Gates is reminiscing about the foundational computer code he wrote 50 years ago, which was instrumental in the creation of the tech giant."
+            },
+            "GOOG": {
+              "title": "Here is What to Know Beyond Why Alphabet Inc. (GOOG) is a Trending Stock",
+              "summary": "Alphabet (GOOG) is attracting significant investor attention, prompting an analysis of its near-term stock performance."
+            },
+            "AMZN": {
+              "title": "Is Amazon.com, Inc. (AMZN) the Top Stock to Buy According to Think Investments?",
+              "summary": "Think Investments, founded in 2013 by Shashin Shah, a seasoned global investor, manages approximately $454.51 million in 13F securities as of Q4 2024."
+            },
+            "TSLA": {
+              "title": "Tesla (TSLA) Faces Skepticism as AI-Driven Autonomy Hits Roadblocks",
+              "summary": "The article assesses Tesla's position relative to other leading AI companies. A European Central Bank study reveals that early AI adoption in manufacturing initially decreases productivity."
+            }
           }
-        ]
-        setNews(sampleNews)
+        })
       } finally {
         setLoading(false)
       }
     }
 
-    fetchNews()
+    fetchStockData()
   }, [])
 
   if (loading) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden p-6">
-        <p>Loading news...</p>
+        <p>Loading stock news...</p>
       </div>
     )
   }
@@ -92,43 +89,37 @@ export default function PersonalizedNewsSection() {
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-3">
               <TrendingUp className="w-6 h-6 text-blue-600" />
-              Your Market Digest
+              Stock Market News
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Curated financial news based on your portfolio
+              Latest news for top market movers
             </p>
           </div>
           <button className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-            Edit Preferences
+            Refresh
           </button>
         </div>
       </div>
 
-      {/* News List */}
+      {/* Stock News List */}
       <div className="divide-y divide-gray-100 dark:divide-gray-700">
-        {news.map(item => (
-          <div key={item.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+        {stockData && stockData.tickers.map(ticker => (
+          <div key={ticker} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
             <div className="flex flex-col">
               <div className="flex items-center gap-2 mb-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  item.sentiment === 'positive' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                  'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                }`}>
-                  {item.category}
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                  {ticker}
                 </span>
                 <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                  <Clock className="w-3 h-3 mr-1" /> {item.time}
+                  <Clock className="w-3 h-3 mr-1" /> Today
                 </span>
-                {item.trending && (
-                  <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 px-2 py-1 rounded-full">
-                    Trending
-                  </span>
-                )}
               </div>
               <h3 className="text-lg font-semibold mb-2 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                {item.title}
+                {stockData.data[ticker].title}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{item.source}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                {stockData.data[ticker].summary}
+              </p>
             </div>
             
             {/* Action Buttons */}
@@ -147,7 +138,7 @@ export default function PersonalizedNewsSection() {
       {/* Footer */}
       <div className="p-4 border-t border-gray-100 dark:border-gray-700 text-center">
         <button className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium">
-          View All Market News →
+          View All Stock News →
         </button>
       </div>
 
