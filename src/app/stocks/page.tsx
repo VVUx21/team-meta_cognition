@@ -88,18 +88,18 @@ export default function Home() {
     setIsLoading(true);
     setSelectedSymbol(symbol);
     try {
-      const apiKey = 'YOUR_TWELVE_DATA_API_KEY'; // Replace with your API key
-      const [quoteRes, timeSeriesRes] = await Promise.all([
-        axios.get(`https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${apiKey}`),
-        axios.get(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=5min&outputsize=30&apikey=${apiKey}`)
-      ]);
+      const mockChartData = Array.from({ length: 30 }, (_, i) => ({
+        datetime: new Date(Date.now() - i * 5 * 60000).toLocaleTimeString(),
+        close: 180 + (Math.random() * 20 - 10)
+      })).reverse();
 
       setStockData({
         symbol: symbol,
-        price: parseFloat(quoteRes.data.price),
-        change: parseFloat(quoteRes.data.percent_change),
-        chart: timeSeriesRes.data.values.reverse(), // for chronological chart
+        price: 180 + (Math.random() * 20 - 10),
+        change: (Math.random() * 4 - 2),
+        chart: mockChartData,
       });
+      await new Promise(resolve => setTimeout(resolve, 800));
     } catch (error) {
       console.error("Error fetching stock data:", error);
       alert("Failed to fetch stock data. Please try again.");
@@ -255,9 +255,140 @@ export default function Home() {
                 )}
               </div>
             </div>
-
-            {/* Rest of your components (Top Gainers & Losers, Most Traded MTF, etc.) */}
-            {/* ... (keep all your existing components as they were) ... */}
+              {/* Top Gainers & Losers */}
+                          <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
+                            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                              <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🏆 Top Movers</h2>
+                                <div className="inline-flex rounded-md shadow-sm">
+                                  <button
+                                    onClick={() => setActiveTab("gainers")}
+                                    className={`rounded-l-lg px-3 py-1 text-sm font-medium ${
+                                      activeTab === "gainers" 
+                                        ? "bg-blue-600 text-white" 
+                                        : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300"
+                                    }`}
+                                  >
+                                    Gainers
+                                  </button>
+                                  <button
+                                    onClick={() => setActiveTab("losers")}
+                                    className={`rounded-r-lg px-3 py-1 text-sm font-medium ${
+                                      activeTab === "losers" 
+                                        ? "bg-blue-600 text-white" 
+                                        : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300"
+                                    }`}
+                                  >
+                                    Losers
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                Biggest {activeTab === "gainers" ? "gainers" : "losers"} today
+                              </p>
+                            </div>
+                            <div className="p-6">
+                              {(activeTab === "gainers" ? topGainers : topLosers).map((stock) => (
+                                <div key={stock.symbol} className="mb-4 flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                                      activeTab === "gainers" ? "bg-green-100 dark:bg-green-900/20" : "bg-red-100 dark:bg-red-900/20"
+                                    }`}>
+                                      <span className={`text-sm font-medium ${
+                                        activeTab === "gainers" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                                      }`}>
+                                        {stock.symbol.substring(0, 2)}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
+                                      <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
+                                    <div className={`flex items-center text-sm ${
+                                      activeTab === "gainers" ? "text-green-500" : "text-red-500"
+                                    }`}>
+                                      {activeTab === "gainers" ? (
+                                        <ArrowUp className="mr-1 h-3 w-3" />
+                                      ) : (
+                                        <ArrowDown className="mr-1 h-3 w-3" />
+                                      )}
+                                      {Math.abs(stock.change).toFixed(2)}%
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        {/* Most Traded MTF */}
+                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
+                          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                            <div>
+                              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🚀 Leveraged ETFs</h2>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">High-volume margin trading</p>
+                            </div>
+                            <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                              View All
+                            </button>
+                          </div>
+                          <div className="p-6">
+                            {mostTradedMTF.map((stock) => (
+                              <div key={stock.symbol} className="mb-4 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/20">
+                                    <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                                      {stock.symbol.substring(0, 2)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">Vol: {stock.volume}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+            
+                        {/* Popular ETFs for SIP */}
+                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
+                          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                            <div>
+                              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">💼 Long-Term ETFs</h2>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">Popular SIP investments</p>
+                            </div>
+                            <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                              Start SIP
+                            </button>
+                          </div>
+                          <div className="p-6">
+                            {popularETFs.map((etf) => (
+                              <div key={etf.symbol} className="mb-4 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
+                                    <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                                      {etf.symbol.substring(0, 2)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-gray-900 dark:text-white">{etf.name}</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">{etf.symbol}</div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-medium text-gray-900 dark:text-white">${etf.price.toFixed(2)}</div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">AUM: ${etf.aum}B</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
             
           </div>
         </div>
