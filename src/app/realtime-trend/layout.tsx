@@ -8,7 +8,7 @@ export default function TicketLayout({
 }) {
   return (
     <>
-      <TopNav title="Ticket" />
+      <TopNav title="Real time Metrics" />
       <main>
         <Container>{children}</Container>
       </main>

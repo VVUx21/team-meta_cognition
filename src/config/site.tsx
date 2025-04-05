@@ -1,4 +1,4 @@
-import { Bitcoin, ChartColumnBig, ChartLine, Gauge, type LucideIcon, MessagesSquare, SquareUser } from "lucide-react";
+import { Bitcoin, ChartBar, ChartColumnBig, ChartLine, Gauge, type LucideIcon, MessagesSquare, SquareUser } from "lucide-react";
 
 export type SiteConfig = typeof siteConfig;
 export type Navigation = {
@@ -24,14 +24,14 @@ export const navigations: Navigation[] = [
     href: "/mutual-funds",
   },
   {
-    icon: ChartColumnBig,
+    icon: ChartBar,
     name: "Stocks",
     href: "/stocks",
   },
   {
-    icon: Bitcoin,
-    name: "Crypto",
-    href: "/crypto",
+    icon: ChartColumnBig,
+    name: "Ongoing Trend",
+    href: "/realtime-trend",
   },
   {
     icon: SquareUser,
