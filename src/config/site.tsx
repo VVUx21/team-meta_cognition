@@ -1,4 +1,4 @@
-import { Bitcoin, ChartBar, ChartColumnBig, ChartLine, Gauge, Eye, Blinds, type LucideIcon, MessagesSquare, SquareUser } from "lucide-react";
+import { Bitcoin, ChartBar, ChartColumnBig, ChartLine, Gauge, Eye, Blinds, type LucideIcon, MessagesSquare, SquareUser, Newspaper } from "lucide-react";
 
 export type SiteConfig = typeof siteConfig;
 export type Navigation = {
@@ -47,5 +47,10 @@ export const navigations: Navigation[] = [
     icon: Blinds,
     name: "Holdings",
     href: "/holdings",
+  },
+  {
+    icon: Newspaper,
+    name: "News Hub",
+    href: "/news",
   }
 ];
