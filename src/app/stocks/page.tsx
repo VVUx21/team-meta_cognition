@@ -40,11 +40,29 @@ interface Stock {
   volume?: string;
 }
 
+interface StockAnalysis {
+  ticker: string;
+  latest_close: number;
+  daily_return: number;
+  volatility: number;
+  ma_50: number;
+  ma_200: number;
+  rsi: number;
+  macd: number;
+  bb_upper: number;
+  bb_middle: number;
+  bb_lower: number;
+  sharpe_ratio: number;
+  risk_classification: string;
+  summary: string;
+}
+
 interface StockData {
   symbol: string;
   price: number;
   change: number;
   chart: any[];
+  analysis?: StockAnalysis;
 }
 
 const priceHistory = [
@@ -72,37 +90,49 @@ export default function Home() {
   const [stockData, setStockData] = useState<StockData | null>(null);
   const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
   const [isLoading, setIsLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const stockListRef = useRef(null);
 
   const handleScroll = () => {
     if (stockListRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = stockListRef.current;
-      
+
       if (scrollTop + clientHeight >= scrollHeight - 20 && visibleStocks < topIntradayStocks.length) {
         setVisibleStocks(prev => Math.min(prev + 5, topIntradayStocks.length));
       }
     }
   };
 
+  // Replace the handleAnalyze function with this updated version
   const handleAnalyze = async (symbol: string) => {
     setIsLoading(true);
     setSelectedSymbol(symbol);
+    setAnalysisError(null);
+
     try {
+      // Generate mock chart data for visualization
       const mockChartData = Array.from({ length: 30 }, (_, i) => ({
         datetime: new Date(Date.now() - i * 5 * 60000).toLocaleTimeString(),
         close: 180 + (Math.random() * 20 - 10)
       })).reverse();
 
+      // Fixed API integration - using POST request with proper payload format
+      const response = await axios.post('http://127.0.0.1:8000/chatbot/chat/', {
+        ticker: symbol
+      });
+
+      // Set stock data with both chart and analysis
       setStockData({
         symbol: symbol,
-        price: 180 + (Math.random() * 20 - 10),
-        change: (Math.random() * 4 - 2),
+        price: response.data.latest_close,
+        change: response.data.daily_return * 100, // Convert to percentage
         chart: mockChartData,
+        analysis: response.data
       });
-      await new Promise(resolve => setTimeout(resolve, 800));
+
     } catch (error) {
       console.error("Error fetching stock data:", error);
-      alert("Failed to fetch stock data. Please try again.");
+      setAnalysisError("Failed to fetch stock analysis. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -118,285 +148,380 @@ export default function Home() {
         console.error("Error fetching top intraday stocks:", error);
       }
     };
-  
+
     fetchTopIntradayStocks();
   }, []);
 
-  return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
-      <header className="sticky top-0 z-40 border-b bg-white dark:bg-gray-900">
-        {/* Header remains same as previous version */}
-      </header>
+  // Function to get appropriate color based on risk classification
+  const getRiskColor = (risk: string) => {
+    switch(risk) {
+      case 'Low':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'Medium':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'High':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+    }
+  };
 
-      <main className="flex-1">
-        <div className="container mx-auto py-6 px-4 sm:px-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">📈 Market Dashboard</h1>
-            <p className="text-gray-500 dark:text-gray-400">Real-time market insights at a glance</p>
-            
-            {/* Stock Data Display */}
-            {stockData && (
-              <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {stockData.symbol} Stock Analysis
-                  </h3>
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    stockData.change >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
+  return (
+      <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
+        <header className="sticky top-0 z-40 border-b bg-white dark:bg-gray-900">
+          {/* Header remains same as previous version */}
+        </header>
+
+        <main className="flex-1">
+          <div className="container mx-auto py-6 px-4 sm:px-6">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">📈 Market Dashboard</h1>
+              <p className="text-gray-500 dark:text-gray-400">Real-time market insights at a glance</p>
+
+              {/* Stock Data Display with Analysis */}
+              {stockData && (
+                  <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {stockData.symbol} Stock Analysis
+                      </h3>
+                      <span className={`px-2 py-1 rounded text-sm ${
+                          stockData.change >= 0 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
                     {stockData.change >= 0 ? '+' : ''}{stockData.change.toFixed(2)}%
                   </span>
-                </div>
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Current Price</p>
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">${stockData.price.toFixed(2)}</p>
+                    </div>
+
+                    {analysisError ? (
+                        <div className="p-4 border border-red-200 rounded-md bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
+                          {analysisError}
+                        </div>
+                    ) : (
+                        <>
+                          {/* Technical Indicators */}
+                          {stockData.analysis && (
+                              <div className="mb-6">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Current Price</p>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">${stockData.analysis.latest_close.toFixed(2)}</p>
+                                  </div>
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Daily Return</p>
+                                    <p className={`text-xl font-bold ${stockData.analysis.daily_return >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                      {(stockData.analysis.daily_return * 100).toFixed(2)}%
+                                    </p>
+                                  </div>
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">RSI (14)</p>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{stockData.analysis.rsi.toFixed(2)}</p>
+                                  </div>
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Risk Level</p>
+                                    <p className={`inline-block px-2 py-1 rounded text-sm font-medium ${getRiskColor(stockData.analysis.risk_classification)}`}>
+                                      {stockData.analysis.risk_classification}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">MACD</p>
+                                    <p className={`text-lg font-bold ${stockData.analysis.macd >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                      {stockData.analysis.macd.toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">50-Day MA</p>
+                                    <p className="text-lg font-bold text-gray-900 dark:text-white">${stockData.analysis.ma_50.toFixed(2)}</p>
+                                  </div>
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">200-Day MA</p>
+                                    <p className="text-lg font-bold text-gray-900 dark:text-white">${stockData.analysis.ma_200.toFixed(2)}</p>
+                                  </div>
+                                </div>
+
+                                <div className="bg-gray-50 p-4 rounded dark:bg-gray-700 mb-4">
+                                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Analysis Summary</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">{stockData.analysis.summary}</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Bollinger Bands</p>
+                                    <div className="mt-1">
+                                      <div className="flex justify-between text-xs">
+                                        <span>Upper</span>
+                                        <span className="font-medium">${stockData.analysis.bb_upper.toFixed(2)}</span>
+                                      </div>
+                                      <div className="flex justify-between text-xs mt-1">
+                                        <span>Middle</span>
+                                        <span className="font-medium">${stockData.analysis.bb_middle.toFixed(2)}</span>
+                                      </div>
+                                      <div className="flex justify-between text-xs mt-1">
+                                        <span>Lower</span>
+                                        <span className="font-medium">${stockData.analysis.bb_lower.toFixed(2)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Volatility</p>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{(stockData.analysis.volatility * 100).toFixed(2)}%</p>
+                                  </div>
+                                  <div className="bg-gray-50 p-3 rounded dark:bg-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Sharpe Ratio</p>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{stockData.analysis.sharpe_ratio.toFixed(4)}</p>
+                                  </div>
+                                </div>
+                              </div>
+                          )}
+
+                          {/* Price Chart */}
+                          <div className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <RechartsLineChart data={stockData.chart}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="datetime" />
+                                <YAxis domain={['auto', 'auto']} />
+                                <Tooltip />
+                                <Line
+                                    type="monotone"
+                                    dataKey="close"
+                                    stroke="#3B82F6"
+                                    strokeWidth={2}
+                                />
+                              </RechartsLineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </>
+                    )}
                   </div>
-                </div>
+              )}
+
+              {/* Price Trend Chart */}
+              <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                  🕒 Live Price Movement (Last 5 Hours)
+                </h3>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={stockData.chart}>
+                    <RechartsLineChart data={priceHistory}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="datetime" />
+                      <XAxis dataKey="time" />
                       <YAxis />
                       <Tooltip />
-                      <Line 
-                        type="monotone" 
-                        dataKey="close" 
-                        stroke="#3B82F6" 
-                        strokeWidth={2}
+                      <Line
+                          type="monotone"
+                          dataKey="price"
+                          stroke="#3B82F6"
+                          strokeWidth={2}
                       />
                     </RechartsLineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
-            )}
-
-            {/* Price Trend Chart */}
-            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                🕒 Live Price Movement (Last 5 Hours)
-              </h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsLineChart data={priceHistory}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="price" 
-                      stroke="#3B82F6" 
-                      strokeWidth={2}
-                    />
-                  </RechartsLineChart>
-                </ResponsiveContainer>
-              </div>
             </div>
-          </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {/* Most Traded Stocks */}
-            <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 w-full max-w-md">
-              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🔥 Hot Stocks</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Most traded today</p>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {/* Most Traded Stocks */}
+              <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 w-full max-w-md">
+                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🔥 Hot Stocks</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Most traded today</p>
+                  </div>
+                  <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    Today
+                  </button>
                 </div>
-                <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                  Today
-                </button>
-              </div>
-              <div 
-                ref={stockListRef}
-                className="p-6 overflow-y-auto max-h-96" 
-                onScroll={handleScroll}
-              >
-                {topIntradayStocks.slice(0, visibleStocks).map((stock) => (
-                  <div key={stock.symbol} className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
+                <div
+                    ref={stockListRef}
+                    className="p-6 overflow-y-auto max-h-96"
+                    onScroll={handleScroll}
+                >
+                  {topIntradayStocks.slice(0, visibleStocks).map((stock) => (
+                      <div key={stock.symbol} className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
                         <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                           {stock.symbol.substring(0, 2)}
                         </span>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
-                      <div className="flex items-center justify-between w-full">
-                        <div className={`flex items-center text-sm ${stock.changesPercentage >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {stock.changesPercentage >= 0 ? (
-                            <ArrowUp className="mr-1 h-3 w-3" />
-                          ) : (
-                            <ArrowDown className="mr-1 h-3 w-3" />
-                          )}
-                          {Math.abs(stock.changesPercentage).toFixed(2)}%
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => handleAnalyze(stock.symbol)}
-                          disabled={isLoading}
-                          className="ml-3 text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-                        >
-                          {isLoading && selectedSymbol === stock.symbol ? 'Loading...' : 'Analyze'}
-                        </button>
+                        <div className="flex flex-col items-end">
+                          <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
+                          <div className="flex items-center justify-between w-full">
+                            <div className={`flex items-center text-sm ${stock.changesPercentage >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                              {stock.changesPercentage >= 0 ? (
+                                  <ArrowUp className="mr-1 h-3 w-3" />
+                              ) : (
+                                  <ArrowDown className="mr-1 h-3 w-3" />
+                              )}
+                              {Math.abs(stock.changesPercentage).toFixed(2)}%
+                            </div>
+                            <button
+                                onClick={() => handleAnalyze(stock.symbol)}
+                                disabled={isLoading}
+                                className="ml-3 text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+                            >
+                              {isLoading && selectedSymbol === stock.symbol ? 'Loading...' : 'Analyze'}
+                            </button>
+                          </div>
+                        </div>
                       </div>
+                  ))}
+                  {visibleStocks < topIntradayStocks.length && (
+                      <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+                        Scroll for more stocks
+                      </div>
+                  )}
+                </div>
+              </div>
+              {/* Top Gainers & Losers */}
+              <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
+                <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🏆 Top Movers</h2>
+                    <div className="inline-flex rounded-md shadow-sm">
+                      <button
+                          onClick={() => setActiveTab("gainers")}
+                          className={`rounded-l-lg px-3 py-1 text-sm font-medium ${
+                              activeTab === "gainers"
+                                  ? "bg-blue-600 text-white"
+                                  : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300"
+                          }`}
+                      >
+                        Gainers
+                      </button>
+                      <button
+                          onClick={() => setActiveTab("losers")}
+                          className={`rounded-r-lg px-3 py-1 text-sm font-medium ${
+                              activeTab === "losers"
+                                  ? "bg-blue-600 text-white"
+                                  : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300"
+                          }`}
+                      >
+                        Losers
+                      </button>
                     </div>
                   </div>
-                ))}
-                {visibleStocks < topIntradayStocks.length && (
-                  <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Scroll for more stocks
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Biggest {activeTab === "gainers" ? "gainers" : "losers"} today
+                  </p>
+                </div>
+                <div className="p-6">
+                  {(activeTab === "gainers" ? topGainers : topLosers).map((stock) => (
+                      <div key={stock.symbol} className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                              activeTab === "gainers" ? "bg-green-100 dark:bg-green-900/20" : "bg-red-100 dark:bg-red-900/20"
+                          }`}>
+                        <span className={`text-sm font-medium ${
+                            activeTab === "gainers" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        }`}>
+                          {stock.symbol.substring(0, 2)}
+                        </span>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
+                          <div className={`flex items-center text-sm ${
+                              activeTab === "gainers" ? "text-green-500" : "text-red-500"
+                          }`}>
+                            {activeTab === "gainers" ? (
+                                <ArrowUp className="mr-1 h-3 w-3" />
+                            ) : (
+                                <ArrowDown className="mr-1 h-3 w-3" />
+                            )}
+                            {Math.abs(stock.change).toFixed(2)}%
+                          </div>
+                        </div>
+                      </div>
+                  ))}
+                </div>
+              </div>
+              {/* Most Traded MTF */}
+              <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
+                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🚀 Leveraged ETFs</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">High-volume margin trading</p>
                   </div>
-                )}
+                  <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    View All
+                  </button>
+                </div>
+                <div className="p-6">
+                  {mostTradedMTF.map((stock) => (
+                      <div key={stock.symbol} className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/20">
+                        <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                          {stock.symbol.substring(0, 2)}
+                        </span>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">Vol: {stock.volume}</div>
+                        </div>
+                      </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Popular ETFs for SIP */}
+              <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
+                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">💼 Long-Term ETFs</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Popular SIP investments</p>
+                  </div>
+                  <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    Start SIP
+                  </button>
+                </div>
+                <div className="p-6">
+                  {popularETFs.map((etf) => (
+                      <div key={etf.symbol} className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
+                        <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                          {etf.symbol.substring(0, 2)}
+                        </span>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white">{etf.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{etf.symbol}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-900 dark:text-white">${etf.price.toFixed(2)}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">AUM: ${etf.aum}B</div>
+                        </div>
+                      </div>
+                  ))}
+                </div>
               </div>
             </div>
-              {/* Top Gainers & Losers */}
-                          <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
-                            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                              <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🏆 Top Movers</h2>
-                                <div className="inline-flex rounded-md shadow-sm">
-                                  <button
-                                    onClick={() => setActiveTab("gainers")}
-                                    className={`rounded-l-lg px-3 py-1 text-sm font-medium ${
-                                      activeTab === "gainers" 
-                                        ? "bg-blue-600 text-white" 
-                                        : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300"
-                                    }`}
-                                  >
-                                    Gainers
-                                  </button>
-                                  <button
-                                    onClick={() => setActiveTab("losers")}
-                                    className={`rounded-r-lg px-3 py-1 text-sm font-medium ${
-                                      activeTab === "losers" 
-                                        ? "bg-blue-600 text-white" 
-                                        : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300"
-                                    }`}
-                                  >
-                                    Losers
-                                  </button>
-                                </div>
-                              </div>
-                              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Biggest {activeTab === "gainers" ? "gainers" : "losers"} today
-                              </p>
-                            </div>
-                            <div className="p-6">
-                              {(activeTab === "gainers" ? topGainers : topLosers).map((stock) => (
-                                <div key={stock.symbol} className="mb-4 flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`flex h-9 w-9 items-center justify-center rounded-full ${
-                                      activeTab === "gainers" ? "bg-green-100 dark:bg-green-900/20" : "bg-red-100 dark:bg-red-900/20"
-                                    }`}>
-                                      <span className={`text-sm font-medium ${
-                                        activeTab === "gainers" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                                      }`}>
-                                        {stock.symbol.substring(0, 2)}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
-                                      <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
-                                    </div>
-                                  </div>
-                                  <div className="text-right">
-                                    <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
-                                    <div className={`flex items-center text-sm ${
-                                      activeTab === "gainers" ? "text-green-500" : "text-red-500"
-                                    }`}>
-                                      {activeTab === "gainers" ? (
-                                        <ArrowUp className="mr-1 h-3 w-3" />
-                                      ) : (
-                                        <ArrowDown className="mr-1 h-3 w-3" />
-                                      )}
-                                      {Math.abs(stock.change).toFixed(2)}%
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        {/* Most Traded MTF */}
-                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
-                          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                            <div>
-                              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">🚀 Leveraged ETFs</h2>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">High-volume margin trading</p>
-                            </div>
-                            <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                              View All
-                            </button>
-                          </div>
-                          <div className="p-6">
-                            {mostTradedMTF.map((stock) => (
-                              <div key={stock.symbol} className="mb-4 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/20">
-                                    <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                                      {stock.symbol.substring(0, 2)}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <div className="font-medium text-gray-900 dark:text-white">{stock.name}</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="font-medium text-gray-900 dark:text-white">${stock.price.toFixed(2)}</div>
-                                  <div className="text-sm text-gray-500 dark:text-gray-400">Vol: {stock.volume}</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-            
-                        {/* Popular ETFs for SIP */}
-                        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:col-span-1">
-                          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                            <div>
-                              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">💼 Long-Term ETFs</h2>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">Popular SIP investments</p>
-                            </div>
-                            <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                              Start SIP
-                            </button>
-                          </div>
-                          <div className="p-6">
-                            {popularETFs.map((etf) => (
-                              <div key={etf.symbol} className="mb-4 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
-                                    <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
-                                      {etf.symbol.substring(0, 2)}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <div className="font-medium text-gray-900 dark:text-white">{etf.name}</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">{etf.symbol}</div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="font-medium text-gray-900 dark:text-white">${etf.price.toFixed(2)}</div>
-                                  <div className="text-sm text-gray-500 dark:text-gray-400">AUM: ${etf.aum}B</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-            
           </div>
-        </div>
-      </main>
+        </main>
 
-      <footer className="border-t border-gray-200 py-6 dark:border-gray-700">
-        {/* Footer remains same as previous version */}
-      </footer>
-    </div>
+        <footer className="border-t border-gray-200 py-6 dark:border-gray-700">
+          {/* Footer remains same as previous version */}
+        </footer>
+      </div>
   );
 }
