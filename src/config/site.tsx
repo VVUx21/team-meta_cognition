@@ -43,6 +43,11 @@ export const navigations: Navigation[] = [
     name: "Holdings",
     href: "/holdings",
   },
+   {
+    icon: ChartColumnBig,
+    name: "Analysis",
+    href: "/analyst",
+  },
   {
     icon: Newspaper,
     name: "News Hub",
