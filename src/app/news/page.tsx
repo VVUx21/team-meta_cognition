@@ -1,4 +1,5 @@
 "use client"
+import React from 'react'
 
 import { Bookmark, Clock, Share2, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
