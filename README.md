@@ -1,93 +1,97 @@
-# VisActor Next.js Dashboard Template
+### Welcome to **Metafin** – Your Intelligent, Jargon‑Free Investment Companion
 
-A modern dashboard template built with [VisActor](https://visactor.io/) and Next.js, featuring a beautiful UI and rich data visualization components.
+Metafin is an AI‑powered platform built to simplify investing with a **completely no‑jargon UI**, featuring clear **iconography and logos** for every section—so you always know exactly where to go.
 
-[Live Demo](https://visactor-next-template.vercel.app/)
+- **Personalized Dashboard**  
+  Your home base, tailored to your goals, with custom logos guiding you through your portfolio at a glance.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?demo-description=A%20modern%20dashboard%20with%20VisActor%20charts%2C%20dark%20mode%2C%20and%20data%20visualization%20for%20seamless%20analytics.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F646TLqKGSTOnp1CD1IUqoM%2Fa119adac1f5a844f9d42f807ddc075f5%2Fthumbnail.png&demo-title=VisActor%20Next.js%20Template&demo-url=https%3A%2F%2Fvisactor-next-template.vercel.app%2F&from=templates&project-name=VisActor%20Next.js%20Template&repository-name=visactor-nextjs-template&repository-url=https%3A%2F%2Fgithub.com%2Fmengxi-ream%2Fvisactor-next-template&skippable-integrations=1)
+- **Mutual Funds & ETFs**  
+  Discover top performers and the single best pick for you. Each fund page sports its own logo, and our “i” button decodes any remaining complexity in plain English.
 
-## Features
+- **Stock Performance Recommendations**  
+  Powered by both cutting‑edge LLMs and a custom from‑scratch model, get concise summaries, interactive graphs, and a clear **Invest/Pass** verdict—each with a dedicated logo for easy navigation.
 
-- 📊 **Rich Visualizations** - Powered by VisActor, including bar charts, gauge charts, circle packing charts, and more
-- 🌗 **Dark Mode** - Seamless dark/light mode switching with system preference support
-- 📱 **Responsive Design** - Fully responsive layout that works on all devices
-- 🎨 **Beautiful UI** - Modern and clean interface built with Tailwind CSS
-- ⚡️ **Next.js 15** - Built on the latest Next.js features and best practices
-- 🔄 **State Management** - Efficient state management with Jotai
-- 📦 **Component Library** - Includes Shadcn components styled with Tailwind
+- **Ongoing Trends**  
+  Real‑time candlestick charts for stocks, forex, and more, driven by our proprietary ML model that predicts optimal buy/sell windows. Look for the trend‑tracker logo to dive in.
 
-## Tech Stack
+- **Sentiment Analysis Engine**  
+  Aggregates insights from Yahoo Finance and Reddit APIs to gauge market mood. Spot the sentiment‑meter icon wherever you need a pulse check.
 
-- [Next.js](https://nextjs.org/) - React framework
-- [VisActor](https://visactor.io/) - Visualization library
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-- [Shadcn](https://ui.shadcn.com/) - UI components
-- [Jotai](https://jotai.org/) - State management
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- **Context‑Aware Chatbot**  
+  Our AI assistant explains every concept in tune with your experience—find it by clicking the chatbot logo in the corner.
 
-## Quick Start
+- **Top 5 Stock Recommendations**  
+  A bespoke model sorts by market cap to surface your next big opportunity. Recognize it by its star‑badge logo.
 
-You can deploy this template to Vercel by clicking the button above, or clone this repository and run it locally.
+- **Stock Comparator**  
+  Side‑by‑side risk analysis for any two tickers, marked with a balance‑scale icon for instant clarity.
 
-[Github Repo](https://github.com/mengxi-ream/visactor-next-template)
+- **Custom News Hub**  
+  Curates headlines and deep dives on your past and current investments, all under one news‑feed logo.
 
-1. Clone this repository
+Metafin isn’t just another fintech tool—it’s your clear, icon‑driven co‑pilot for smarter investing. 🚀
 
-```bash
-git clone https://github.com/mengxi-ream/visactor-next-template
-```
 
-2. Install dependencies
 
-```bash
-pnpm install
-```
+# 🔧 Installation
+# Clone the repo
+git clone https://github.com/VVUx21/team-meta_cognition
 
-3. Run the development server
+cd team-meta_cognition
 
-```bash
-pnpm dev
-```
+# Install dependencies
+npm i --force
 
-4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Run the development server
+npm run dev
+### 🌟 Enhanced Tech Stack for Complex ML Model Deployment 🌟
 
-## Project Structure
+**🖥️ Client-Side:**  
+- **React**: For dynamic and interactive user interfaces.  
+- **Redux**: To manage application state efficiently.  
+- **TailwindCSS**: For sleek, responsive, and modern styling.  
+- **Next.js**: Optimized for server-side rendering (SSR) and seamless integration with APIs.
 
-```bash
-src/
-├── app/ # App router pages
-├── components/ # React components
-│ ├── chart-blocks/ # Chart components
-│ ├── nav/ # Navigation components
-│ └── ui/ # UI components
-├── config/ # Configuration files
-├── data/ # Sample data
-├── hooks/ # Custom hooks
-├── lib/ # Utility functions
-├── style/ # Global style
-└── types/ # TypeScript types
-```
+**🌐 Server-Side:**  
+- **Node.js**: Acts as an intermediary server for preprocessing and routing between the frontend and backend APIs.  
+- **Express.js**: Facilitates robust API creation and request handling.  
+- **Flask**: Lightweight Python framework to serve ML models as RESTful APIs, ideal for quick deployments and prototyping.  
+- **Django**: A robust Python framework for scalable and feature-rich backend applications, suitable for handling complex ML model deployments.
 
-## Charts
+### 🚀 Deployment Workflow:
+1. **Frontend Interaction (Next.js)**: Users interact with the interface to upload data or query predictions.
+2. **Intermediate Processing (Node.js + Express)**: The frontend sends data to the Node.js server, which preprocesses it before forwarding the request.
+3. **Model Inference (Flask/Django)**:
+   - Flask handles lightweight deployments with RESTful APIs for quick responses.
+   - Django is used for larger-scale applications requiring advanced features like caching or database integration.
+4. **Result Display**: The prediction results are routed back through Node.js to Next.js and displayed to the user.
 
-This template includes several chart examples:
+### 🔧 Why This Stack?
+- **Next.js + Flask/Django Integration**: Combines fast rendering capabilities of Next.js with Flask/Django’s ability to serve complex ML models efficiently.  
+- **Scalability**: Django ensures scalability for high-demand applications, while Flask is perfect for lightweight prototypes.  
+- **Flexibility**: Flask allows custom routes and preprocessing, while Django supports advanced features like caching and authentication.  
 
-- Average Tickets Created (Bar Chart)
-- Ticket by Channels (Gauge Chart)
-- Conversions (Circle Packing Chart)
-- Customer Satisfaction (Linear Progress)
-- Metrics Overview
+This stack is ideal for deploying machine learning models in real-world applications, ensuring performance, scalability, and user-friendly interfaces!
+Here’s your updated **API Reference** to reflect the use of **FMP, Alpha Vantage, TradersView, Reddit, and Yahoo Finance**:
 
-## Contributing
+---
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## API Reference
 
-## License
+### Data Sources
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This API aggregates and serves financial data from the following sources:
 
-## Acknowledgements
+- **FMP (Financial Modeling Prep)**
+- **Alpha Vantage**
+- **TradersView**
+- **Reddit (r/stocks, r/investing, etc.)**
+- **Yahoo Finance**
 
-- [VisActor](https://visactor.io/) - For the amazing visualization library
-- [Vercel](https://vercel.com) - For the incredible deployment platform
-- [Next.js](https://nextjs.org/) - For the awesome React framework
+---
+
+
+
+## Deployment
+This Project is deployed on Vercel and Render.
+
