@@ -1,15 +1,44 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import CryptoSignalsDashboard from '../../components/signalsdashboard';
 
-const TradingViewWidget: React.FC = () => {
+const CryptoTradingDashboard: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [category, setCategory] = useState("BINANCE");
-  const [symbol, setSymbol] = useState("BTCUSDT");
-  const [loadChart, setLoadChart] = useState(false);
+  const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
+  const [availableSymbols, setAvailableSymbols] = useState<Array<{
+    symbol: string;
+    baseAsset: string;
+    quoteAsset: string;
+  }>>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+  // Fetch available symbols from the API
   useEffect(() => {
-    if (!loadChart || !containerRef.current) return;
+    const fetchSymbols = async () => {
+      try {
+        const response = await fetch(`${API_URL}/symbols`);
+        if (!response.ok) throw new Error('Failed to fetch symbols');
+        const data = await response.json();
+        setAvailableSymbols(data.symbols || []);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching symbols:', err);
+        setError('Failed to load available cryptocurrencies');
+        setLoading(false);
+      }
+    };
+    
+    fetchSymbols();
+  }, [API_URL]);
+
+  // Initialize TradingView widget
+  useEffect(() => {
+    if (!containerRef.current) return;
 
     containerRef.current.innerHTML = "";
 
@@ -19,9 +48,9 @@ const TradingViewWidget: React.FC = () => {
     script.async = true;
     script.innerHTML = `
       {
-        "height": "650",
+        "height": "500",
         "autosize": true,
-        "symbol": "${category}:${symbol}",
+        "symbol": "BINANCE:${selectedSymbol}",
         "interval": "D",
         "timezone": "Etc/UTC",
         "theme": "dark",
@@ -32,52 +61,75 @@ const TradingViewWidget: React.FC = () => {
       }`;
 
     containerRef.current.appendChild(script);
-  }, [category, symbol, loadChart]);
+  }, [category, selectedSymbol]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoadChart(true); // triggers chart load
+  // Handle symbol selection change
+  const handleSymbolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedSymbol(e.target.value);
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4 w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 items-center w-full max-w-2xl">
-        <input
-          type="text"
-          placeholder="Enter Category (e.g., BINANCE)"
-          value={category}
-          onChange={(e) => setCategory(e.target.value.toUpperCase())}
-          className="border border-gray-300 p-2 rounded-md w-full"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Enter Symbol (e.g., BTCUSDT)"
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-          className="border border-gray-300 p-2 rounded-md w-full"
-          required
-        />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-        >
-          Load
-        </button>
-      </form>
+    <div className="min-h-screen bg-gray-900 text-white">
+      <header className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-2">Crypto Trading Analysis Platform</h1>
+        <p className="text-gray-400">Real-time charts and ML-powered trading signals</p>
+      </header>
 
-      <div
-        className="tradingview-widget-container w-full"
-        ref={containerRef}
-        style={{ height: "800px" }}
-      >
-        <div
-          className="tradingview-widget-container__widget"
-          style={{ height: "100%", width: "100%" }}
-        ></div>
-      </div>
+      <main className="container mx-auto px-4 py-4">
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin h-8 w-8 text-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              </svg>
+            </div>
+            <span className="ml-2">Loading...</span>
+          </div>
+        ) : (
+          <>
+            {/* Symbol Selection Dropdown */}
+            <div className="bg-gray-800 p-4 rounded-lg mb-6">
+              <label className="block text-sm font-medium text-gray-400 mb-2">
+                Select Cryptocurrency
+              </label>
+              <select 
+                value={selectedSymbol}
+                onChange={handleSymbolChange}
+                className="w-full bg-gray-700 text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {availableSymbols.map((symbol) => (
+                  <option key={symbol.symbol} value={symbol.symbol}>
+                    {symbol.baseAsset}/{symbol.quoteAsset} ({symbol.symbol})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* TradingView Widget */}
+            <div className="bg-gray-800 p-4 rounded-lg mb-6">
+              <h2 className="text-xl font-bold mb-4">Live Chart</h2>
+              <div
+                className="tradingview-widget-container w-full"
+                ref={containerRef}
+                style={{ height: "500px" }}
+              >
+                <div
+                  className="tradingview-widget-container__widget"
+                  style={{ height: "100%", width: "100%" }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Signals Dashboard Component */}
+            <div className="mt-8">
+              <h2 className="text-xl font-bold mb-4">Trading Signals</h2>
+              <CryptoSignalsDashboard selectedSymbol={selectedSymbol} availableSymbols={availableSymbols} />
+            </div>
+          </>
+        )}
+      </main>
     </div>
   );
 };
 
-export default TradingViewWidget;
+export default CryptoTradingDashboard;

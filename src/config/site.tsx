@@ -33,16 +33,16 @@ export const navigations: Navigation[] = [
     name: "Ongoing Trend",
     href: "/realtime-trend",
   },
-  {
-    icon: Eye,
-    name: "My Watchlist",
-    href: "/watchlist",
-  },
-   {
-    icon: Blinds,
-    name: "Holdings",
-    href: "/holdings",
-  },
+  // {
+  //   icon: Eye,
+  //   name: "My Watchlist",
+  //   href: "/watchlist",
+  // },
+  //  {
+  //   icon: Blinds,
+  //   name: "Holdings",
+  //   href: "/holdings",
+  // },
    {
     icon: ChartColumnBig,
     name: "Analysis",
