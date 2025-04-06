@@ -1,93 +1,35 @@
-# VisActor Next.js Dashboard Template
+### Welcome to **Metafin** – Your Intelligent, Jargon‑Free Investment Companion
 
-A modern dashboard template built with [VisActor](https://visactor.io/) and Next.js, featuring a beautiful UI and rich data visualization components.
+Metafin is an AI‑powered platform built to simplify investing with a **completely no‑jargon UI**, featuring clear **iconography and logos** for every section—so you always know exactly where to go.
 
-[Live Demo](https://visactor-next-template.vercel.app/)
+- **Personalized Dashboard**  
+  Your home base, tailored to your goals, with custom logos guiding you through your portfolio at a glance.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?demo-description=A%20modern%20dashboard%20with%20VisActor%20charts%2C%20dark%20mode%2C%20and%20data%20visualization%20for%20seamless%20analytics.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F646TLqKGSTOnp1CD1IUqoM%2Fa119adac1f5a844f9d42f807ddc075f5%2Fthumbnail.png&demo-title=VisActor%20Next.js%20Template&demo-url=https%3A%2F%2Fvisactor-next-template.vercel.app%2F&from=templates&project-name=VisActor%20Next.js%20Template&repository-name=visactor-nextjs-template&repository-url=https%3A%2F%2Fgithub.com%2Fmengxi-ream%2Fvisactor-next-template&skippable-integrations=1)
+- **Mutual Funds & ETFs**  
+  Discover top performers and the single best pick for you. Each fund page sports its own logo, and our “i” button decodes any remaining complexity in plain English.
 
-## Features
+- **Stock Performance Recommendations**  
+  Powered by both cutting‑edge LLMs and a custom from‑scratch model, get concise summaries, interactive graphs, and a clear **Invest/Pass** verdict—each with a dedicated logo for easy navigation.
 
-- 📊 **Rich Visualizations** - Powered by VisActor, including bar charts, gauge charts, circle packing charts, and more
-- 🌗 **Dark Mode** - Seamless dark/light mode switching with system preference support
-- 📱 **Responsive Design** - Fully responsive layout that works on all devices
-- 🎨 **Beautiful UI** - Modern and clean interface built with Tailwind CSS
-- ⚡️ **Next.js 15** - Built on the latest Next.js features and best practices
-- 🔄 **State Management** - Efficient state management with Jotai
-- 📦 **Component Library** - Includes Shadcn components styled with Tailwind
+- **Ongoing Trends**  
+  Real‑time candlestick charts for stocks, forex, and more, driven by our proprietary ML model that predicts optimal buy/sell windows. Look for the trend‑tracker logo to dive in.
 
-## Tech Stack
+- **Sentiment Analysis Engine**  
+  Aggregates insights from Yahoo Finance and Reddit APIs to gauge market mood. Spot the sentiment‑meter icon wherever you need a pulse check.
 
-- [Next.js](https://nextjs.org/) - React framework
-- [VisActor](https://visactor.io/) - Visualization library
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-- [Shadcn](https://ui.shadcn.com/) - UI components
-- [Jotai](https://jotai.org/) - State management
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- **Context‑Aware Chatbot**  
+  Our AI assistant explains every concept in tune with your experience—find it by clicking the chatbot logo in the corner.
 
-## Quick Start
+- **Top 5 Stock Recommendations**  
+  A bespoke model sorts by market cap to surface your next big opportunity. Recognize it by its star‑badge logo.
 
-You can deploy this template to Vercel by clicking the button above, or clone this repository and run it locally.
+- **Stock Comparator**  
+  Side‑by‑side risk analysis for any two tickers, marked with a balance‑scale icon for instant clarity.
 
-[Github Repo](https://github.com/mengxi-ream/visactor-next-template)
+- **Custom News Hub**  
+  Curates headlines and deep dives on your past and current investments, all under one news‑feed logo.
 
-1. Clone this repository
+Metafin isn’t just another fintech tool—it’s your clear, icon‑driven co‑pilot for smarter investing. 🚀
 
-```bash
-git clone https://github.com/mengxi-ream/visactor-next-template
-```
 
-2. Install dependencies
 
-```bash
-pnpm install
-```
-
-3. Run the development server
-
-```bash
-pnpm dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## Project Structure
-
-```bash
-src/
-├── app/ # App router pages
-├── components/ # React components
-│ ├── chart-blocks/ # Chart components
-│ ├── nav/ # Navigation components
-│ └── ui/ # UI components
-├── config/ # Configuration files
-├── data/ # Sample data
-├── hooks/ # Custom hooks
-├── lib/ # Utility functions
-├── style/ # Global style
-└── types/ # TypeScript types
-```
-
-## Charts
-
-This template includes several chart examples:
-
-- Average Tickets Created (Bar Chart)
-- Ticket by Channels (Gauge Chart)
-- Conversions (Circle Packing Chart)
-- Customer Satisfaction (Linear Progress)
-- Metrics Overview
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgements
-
-- [VisActor](https://visactor.io/) - For the amazing visualization library
-- [Vercel](https://vercel.com) - For the incredible deployment platform
-- [Next.js](https://nextjs.org/) - For the awesome React framework
