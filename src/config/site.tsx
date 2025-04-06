@@ -52,5 +52,10 @@ export const navigations: Navigation[] = [
     icon: Newspaper,
     name: "News Hub",
     href: "/news",
-  }
+  },
+  {
+    icon: MessagesSquare,
+    name: "Recommendations",
+    href: "/recomm",
+  },
 ];
